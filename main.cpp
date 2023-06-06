@@ -96,14 +96,75 @@ private:
         node->parent = left;
     }
 
-    // Following psuedocode from https://algorithmtutor.com/Data-Structures/Tree/Red-Black-Trees/
+    void swapColors(int & a, int & b) {
+        int temp = a;
+        a = b;
+        b = temp;
+    }
+
+    // Fixes the tree after insertion
     void fix(struct Node * node) {
-        struct Node * temp = NULL;
+        struct Node * parent = NULL;
+        struct Node * grandparent = NULL;
+    
+        while (node != this->root && node->color != 1 && node->parent->color == 0) {
+            parent = node->parent;
+            grandparent = parent->parent;
 
-        // While color == RED
-        while (node->color == 0) {
+            // Parent of node is left child of grandparent of node
+            if (parent == grandparent->left) {
+                struct Node * uncle = grandparent->right;
 
+                // Uncle of node is also red, so only fix colors
+                if (uncle != NULL && uncle->color == 0) {
+                    grandparent->color = 0;
+                    parent->color = 1;
+                    uncle->color = 1;
+                    node = grandparent;
+                }
+                else {
+                    // Node is right child of its parent, so do left rotation
+                    if (node == parent->right) {
+                        leftRotate(parent);
+                        node = parent;
+                        parent = node->parent;
+                    }
+
+                    // Node is left child of its parenr so right rotation required
+                    rightRotate(grandparent);
+                    swapColors(parent->color, grandparent->color);
+                    node = parent;
+                }
+            }
+            // Parent of node is right child of grandparent of node 
+            else {
+                struct Node * uncle = grandparent->left;
+
+                // Uncle of node is also red, so only fix colors
+                if (uncle != NULL && uncle->color == 0) {
+                    grandparent->color = 0;
+                    parent->color = 1;
+                    uncle->color = 1;
+                    node = grandparent;
+                }
+                else {
+                    // Node is left child of its parent, so do right rotation
+                    if (node == parent->left) {
+                        rightRotate(parent);
+                        node = parent;
+                        parent = node->parent;
+                    }
+
+                    // Node is right child of its parent, so do left rotation
+                    leftRotate(grandparent);
+                    swapColors(parent->color, grandparent->color);
+                    node = parent;
+                }
+            }
         }
+
+        // Set root to black
+        this->root->color = 1;
     }
 
 public:
@@ -116,6 +177,8 @@ public:
         
         // If root doesn't exist then new_node is new root
         if (this->root == NULL) {
+            // Because is root, color is black
+            new_node->color = 1;
             this->root = new_node;
             return;
         }
@@ -144,6 +207,21 @@ public:
                 }
             }
         }
+
+        new_node->parent = current;
+
+        // If the parent is NULL then is root
+        if (new_node->parent == NULL) {
+            new_node->color = 1;
+            return;
+        }
+
+        // If the grandparent is null, exit
+        if (new_node->parent->parent == NULL) {
+            return;
+        }
+
+        this->fix(new_node);
     }
 
     void print() {
