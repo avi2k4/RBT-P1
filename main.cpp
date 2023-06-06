@@ -13,6 +13,7 @@ class RBTree {
 private:
     struct Node * root;
 
+    // Recursive print function to be called by main print function
     void printRecursively(struct Node * current, int spacing) {
         if (current == NULL) {
             return;
@@ -32,6 +33,7 @@ private:
         this->printRecursively(current->left, spacing + 3);
     }
 
+    // Utility function to configure a new node to avoid memory leaks
     struct Node * newNode(int value) {
         struct Node * new_node = new Node();
         new_node->value = value;
@@ -44,16 +46,104 @@ private:
         return new_node;
     }
 
+    // Handle left rotation at input node
+    void leftRotate(struct Node * node) {
+        struct Node * right = node->right;
+        node->right = right->left;
+
+        if (node->right != NULL) {
+            node->right->parent = node;
+        }
+
+        right->parent = node->parent;
+
+        if (node->parent == NULL) {
+            this->root = right;
+        }
+        else if (node == node->parent->left) {
+            node->parent->left = right;
+        }
+        else {
+            node->parent->right = right;
+        }
+
+        right->left = node;
+        node->parent = right;
+    }
+
+    // Handle right rotation at input node
+    void rightRotate(struct Node * node) {
+        struct Node * left = node->left;
+        node->left = left->right;
+
+        if (node->left != NULL) {
+            node->left->parent = node;
+        }
+
+        left->parent = node->parent;
+
+        if (node->parent == NULL) {
+            this->root = left;
+        }
+        else if (node == node->parent->left) {
+            node->parent->left = left;
+        }
+        else {
+            node->parent->right = left;
+        }
+
+        left->right = node;
+        node->parent = left;
+    }
+
+    // Following psuedocode from https://algorithmtutor.com/Data-Structures/Tree/Red-Black-Trees/
+    void fix(struct Node * node) {
+        struct Node * temp = NULL;
+
+        // While color == RED
+        while (node->color == 0) {
+
+        }
+    }
+
 public:
     RBTree() {
         this->root = NULL;
     }
 
     void add(int value) {
-        this->root = this->newNode(value);
-        this->root->left = this->newNode(150);
-        this->root->right = this->newNode(300);
-        this->root->right->right = this->newNode(600);
+        struct Node * new_node = this->newNode(value);
+        
+        // If root doesn't exist then new_node is new root
+        if (this->root == NULL) {
+            this->root = new_node;
+            return;
+        }
+        
+        struct Node * current = this->root;
+        while (true) {
+            // If value to the right is greater, then look at left
+            if (current->value > value) {
+                if (current->left != NULL) {
+                    current = current->left;
+                }
+                // Can end loop early because spot is found
+                else {
+                    current->left = new_node;
+                    break;
+                }
+            }
+            else {
+                if (current->right != NULL) {
+                    current = current->right;
+                }
+                // Can end loop early because spot is found
+                else {
+                    current->right = new_node;
+                    break;
+                }
+            }
+        }
     }
 
     void print() {
@@ -69,6 +159,7 @@ public:
 int main() {
     RBTree * tree = new RBTree();
 
+    // Commands
     std::cout << "Here are the commands for interact with the Red-Black Tree:" << std::endl;
     std::cout << "[1] to add a number" << std::endl;
     std::cout << "[2] to add in numbers from a file" << std::endl;
@@ -81,6 +172,7 @@ int main() {
         int cmd_input;
         std::cin >> cmd_input;
         
+        // Insert 1 number from console
         if (cmd_input == 1) {
             std::cout << "Enter the number you want to add:" << std::endl;
             
@@ -91,6 +183,7 @@ int main() {
             
             std::cout << "Successfully added " << input << std::endl;
         }
+        // Insert from file
         else if (cmd_input == 2) {
             std::cout << "Enter the name of the file" << std::endl;
 
@@ -111,9 +204,11 @@ int main() {
             
             file_input.close();
         }
+        // Print
         else if (cmd_input == 3) {
             tree->print();
         }
+        // Quit
         else if (cmd_input == 4) {
             break;
         }
